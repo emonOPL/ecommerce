@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ecommerce.Controllers;
 
 [Route("api/categories/")]
-public class CategoryControllers: Controller
+public class CategoryController: Controller
 {
     public static List<Category> categories = new List<Category>(); 
 
