@@ -8,11 +8,6 @@ public class CategoryRepository: ICategoryRepository
 {
     private readonly List<Category> _categories = new List<Category>();
 
-    public CategoryRepository(List<Category> categories)
-    {
-        _categories = categories;
-    }
-
     public List<Category> GetCategories(String? searchValue)
     {
         if (!string.IsNullOrEmpty(searchValue))

@@ -1,6 +1,7 @@
 using System;
 using ecommerce.Model;
 using ecommerce.Model.Dto;
+using ecommerce.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ecommerce.Controllers;
@@ -10,24 +11,24 @@ namespace ecommerce.Controllers;
 [ApiConventionType(typeof(DefaultApiConventions))]
 public class CategoryController: ControllerBase
 {
-    public static List<Category> categories = new List<Category>(); 
+    private readonly ICategoryService _categoryService;
+
+    public CategoryController(ICategoryService categoryService)
+    {
+        _categoryService = categoryService;
+    }
 
     [HttpGet]
     public IActionResult GetCategories(string? searchValue)
     {
-        if (!string.IsNullOrEmpty(searchValue))
-        {
-            var searchResult = categories.Where(c => c.Name.Contains(searchValue.Trim(), StringComparison.OrdinalIgnoreCase));
-            return Ok(searchResult);
-        }
-        return Ok(categories);
+        return Ok(_categoryService.GetCategories(searchValue));
     }
 
     [HttpGet]
     [Route("{id:guid}")]
     public IActionResult GetCategory([FromRoute] Guid id)
     {
-        Category? category = categories.FirstOrDefault(c => c.Id == id);
+        Category? category = _categoryService.GetCategory(id);
         if (category == null)
         {
             return NotFound();
@@ -38,26 +39,19 @@ public class CategoryController: ControllerBase
     [HttpPost]
     public IActionResult CreateCategory([FromBody] CreateCategory createCategory)
     {
-        Category category = new Category();
-        category.Id = Guid.NewGuid();
-        category.Name = createCategory.Name.Trim();
-        category.Description = createCategory.Description?.Trim();
-        category.CreatedAt = DateTime.UtcNow;
-        categories.Add(category);
-        return Created($"/api/categories/{category.Id}", category);
+        var category = _categoryService.CreateCategory(createCategory);
+        return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
     }
 
     [HttpPut]
     [Route("{id:guid}")]
     public IActionResult UpdateCategory([FromRoute] Guid id, [FromBody] CreateCategory updateCategory)
     {
-        Category? category = categories.FirstOrDefault(c => c.Id == id);
+        Category? category = _categoryService.UpdateCategory(id, updateCategory);
         if (category == null)
         {
             return NotFound();
         }
-        category.Name = updateCategory.Name.Trim();
-        category.Description = updateCategory.Description?.Trim();
         return NoContent();
     }
 
@@ -65,22 +59,20 @@ public class CategoryController: ControllerBase
     [Route("{id:guid}")]
     public IActionResult PartialUpdateCategory([FromRoute] Guid id, [FromBody] PartialUpdateCategory partialUpdateCategory)
     {
-        var name = partialUpdateCategory?.Name?.Trim();         
+        var name = partialUpdateCategory.Name?.Trim();         
         if (name == "")                                 
         {
             return BadRequest("Name cannot be empty.");
         }
-        if (partialUpdateCategory?.Description?.Trim().Length > 1000)
+        if (partialUpdateCategory.Description?.Trim().Length > 1000)
         {
             return BadRequest();
         }
-        Category? category = categories.FirstOrDefault(c => c.Id == id);
+        Category? category = _categoryService.PartialUpdateCategory(id, partialUpdateCategory);
         if (category == null)
         {
             return NotFound();
         }
-        category.Name = name ?? category.Name;
-        category.Description = partialUpdateCategory?.Description?.Trim() ?? category.Description;
         return NoContent();
     }
 
@@ -88,12 +80,11 @@ public class CategoryController: ControllerBase
     [Route("{id:guid}")]
     public IActionResult DeleteCategory([FromRoute] Guid id)
     {
-        Category? category = categories.FirstOrDefault(c => c.Id == id);
-        if (category == null)
+        bool isDeleted = _categoryService.DeleteCategory(id);
+        if (!isDeleted)
         {
             return NotFound();
         }
-        categories.Remove(category);
         return NoContent();
     }
 
