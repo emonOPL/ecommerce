@@ -28,38 +28,14 @@ public class CategoryRepository: ICategoryRepository
         return _categories.FirstOrDefault(c => c.Id == id);
     }
 
-    public Category CreateCategory(CreateCategory createCategory)
+    public Category CreateCategory(Category category)
     {
-        var category = new Category();
-        category.Id = Guid.NewGuid();
-        category.Name = createCategory.Name.Trim();
-        category.Description = createCategory.Description?.Trim();
-        category.CreatedAt = DateTime.UtcNow;
         _categories.Add(category);
         return category;
     }
 
-    public Category? UpdateCategory(Guid id, CreateCategory updateCategory)
+    public Category UpdateCategory(Category category)
     {
-        var category = _categories.FirstOrDefault(c => c.Id == id);
-        if (category == null)
-        {
-            return null;
-        }
-        category.Name = updateCategory.Name.Trim();
-        category.Description = updateCategory.Description?.Trim();
-        return category;
-    }
-
-    public Category? PartialUpdateCategory(Guid id, PartialUpdateCategory partialUpdateCategory)
-    {
-        var category = _categories.FirstOrDefault(c => c.Id == id);
-        if (category == null)
-        {
-            return null;
-        }
-        category.Name = partialUpdateCategory.Name?.Trim() ?? category.Name;
-        category.Description = partialUpdateCategory.Description?.Trim() ?? category.Description;
         return category;
     }
 
